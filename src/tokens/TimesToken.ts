@@ -10,5 +10,5 @@ export class TimesToken extends BaseToken {
         return new TimesToken(pos);
     }
 
-    protected readonly type = TokenType.Times; // for testing
+    protected readonly type = TokenType.Times;
 }

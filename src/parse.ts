@@ -1,19 +1,24 @@
 import { ParserError } from "./errors/ParserError";
 import { EmptyExpression } from "./expressions/EmptyExpression";
 import { IExpression } from "./expressions/IExpression";
+import { MinusExpression } from "./expressions/MinusExpression";
 import { PlusExpression } from "./expressions/PlusExpression";
 import { TerminalExpression } from "./expressions/TerminalExpression";
 import { TimesExpression } from "./expressions/TimesExpression";
 import { BracketCloseToken } from "./tokens/BracketCloseToken";
 import { BracketOpenToken } from "./tokens/BracketOpenToken";
+import { MinusToken } from "./tokens/MinusToken";
 import { NumberToken } from "./tokens/NumberToken";
 import { PlusToken } from "./tokens/PlusToken";
 import { TimesToken } from "./tokens/TimesToken";
 import { Token } from "./tokens/Token";
 
-type OperatorToken = PlusToken | TimesToken;
+type Operation = PlusExpression | TimesExpression | MinusExpression;
+type OperatorToken = PlusToken | TimesToken | MinusToken;
 const isOperator = (x: Token): x is OperatorToken =>
-    PlusToken.instanceof(x) || TimesToken.instanceof(x);
+    PlusToken.instanceof(x) ||
+    TimesToken.instanceof(x) ||
+    MinusToken.instanceof(x);
 
 interface IAstAccumulator {
     ast: IExpression;
@@ -68,17 +73,20 @@ const parseOperator = (tokens: Token[], left: IExpression): IAstAccumulator => {
         );
     }
     const right = lookAhead(tokens.slice(1));
+    const astAccumulatorOf = (
+        of: (left: IExpression, right: IExpression) => IExpression
+    ): IAstAccumulator => ({
+        ast: of(left, right.ast),
+        nextIndexForParsing: right.nextIndexForParsing,
+    });
     if (PlusToken.instanceof(operator)) {
-        return {
-            ast: PlusExpression.of(left, right.ast),
-            nextIndexForParsing: right.nextIndexForParsing,
-        };
+        return astAccumulatorOf(PlusExpression.of);
     }
     if (TimesToken.instanceof(operator)) {
-        return {
-            ast: TimesExpression.of(left, right.ast),
-            nextIndexForParsing: right.nextIndexForParsing,
-        };
+        return astAccumulatorOf(TimesExpression.of);
+    }
+    if (MinusToken.instanceof(operator)) {
+        return astAccumulatorOf(MinusExpression.of);
     }
     throw new ParserError(operator.pos, "Unknown operator");
 };

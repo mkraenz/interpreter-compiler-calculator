@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { flow } from "fp-ts/lib/function";
+import { MinusExpression } from "./expressions/MinusExpression";
 import { PlusExpression } from "./expressions/PlusExpression";
 import { TerminalExpression } from "./expressions/TerminalExpression";
 import { TimesExpression } from "./expressions/TimesExpression";
@@ -7,18 +8,19 @@ import { parse } from "./parse";
 import { Tokenizer } from "./tokens/Tokenizer";
 
 const tokenizeAndParse = flow(Tokenizer.read, parse);
+
+const minus = MinusExpression.of;
+const plus = PlusExpression.of;
+const times = TimesExpression.of;
+const num = TerminalExpression.of;
+
 describe("tokenize and parse", () => {
     it("works for 5 + 3", () => {
         const input = "5 + 3";
 
         const result = tokenizeAndParse(input);
 
-        expect(result).to.deep.equal(
-            PlusExpression.of(
-                TerminalExpression.of(5),
-                TerminalExpression.of(3)
-            )
-        );
+        expect(result).to.deep.equal(plus(num(5), num(3)));
     });
 
     it("works for 5 + 3 + 1", () => {
@@ -26,15 +28,7 @@ describe("tokenize and parse", () => {
 
         const result = tokenizeAndParse(input);
 
-        expect(result).to.deep.equal(
-            PlusExpression.of(
-                PlusExpression.of(
-                    TerminalExpression.of(5),
-                    TerminalExpression.of(3)
-                ),
-                TerminalExpression.of(1)
-            )
-        );
+        expect(result).to.deep.equal(plus(plus(num(5), num(3)), num(1)));
     });
 
     it("works for 4 * 5 + 3", () => {
@@ -42,15 +36,7 @@ describe("tokenize and parse", () => {
 
         const result = tokenizeAndParse(input);
 
-        expect(result).to.deep.equal(
-            PlusExpression.of(
-                TimesExpression.of(
-                    TerminalExpression.of(4),
-                    TerminalExpression.of(5)
-                ),
-                TerminalExpression.of(3)
-            )
-        );
+        expect(result).to.deep.equal(plus(times(num(4), num(5)), num(3)));
     });
 
     it("works for 4 * 5 + 3 * 8", () => {
@@ -59,16 +45,7 @@ describe("tokenize and parse", () => {
         const result = tokenizeAndParse(input);
 
         expect(result).to.deep.equal(
-            TimesExpression.of(
-                PlusExpression.of(
-                    TimesExpression.of(
-                        TerminalExpression.of(4),
-                        TerminalExpression.of(5)
-                    ),
-                    TerminalExpression.of(3)
-                ),
-                TerminalExpression.of(8)
-            )
+            times(plus(times(num(4), num(5)), num(3)), num(8))
         );
     });
 
@@ -77,12 +54,7 @@ describe("tokenize and parse", () => {
 
         const result = tokenizeAndParse(input);
 
-        expect(result).to.deep.equal(
-            TimesExpression.of(
-                TerminalExpression.of(4),
-                TerminalExpression.of(5)
-            )
-        );
+        expect(result).to.deep.equal(times(num(4), num(5)));
     });
 
     it("works for ( 4 * 5 ) + 3", () => {
@@ -90,15 +62,7 @@ describe("tokenize and parse", () => {
 
         const result = tokenizeAndParse(input);
 
-        expect(result).to.deep.equal(
-            PlusExpression.of(
-                TimesExpression.of(
-                    TerminalExpression.of(4),
-                    TerminalExpression.of(5)
-                ),
-                TerminalExpression.of(3)
-            )
-        );
+        expect(result).to.deep.equal(plus(times(num(4), num(5)), num(3)));
     });
 
     it("works for ( 4 * 5 ) + ( 2 * 3 )", () => {
@@ -107,38 +71,35 @@ describe("tokenize and parse", () => {
         const result = tokenizeAndParse(input);
 
         expect(result).to.deep.equal(
-            PlusExpression.of(
-                TimesExpression.of(
-                    TerminalExpression.of(4),
-                    TerminalExpression.of(5)
-                ),
-                TimesExpression.of(
-                    TerminalExpression.of(2),
-                    TerminalExpression.of(3)
-                )
-            )
+            plus(times(num(4), num(5)), times(num(2), num(3)))
         );
     });
 
-    it("works for ( 4 * 5 ) + ( ( 2 * 3 ) * 7 ) ", () => {
+    it("works for ( 4 * 5 ) + ( ( 2 * 3 ) * 7 )", () => {
         const input = "( 4 * 5 ) + ( ( 2 * 3 ) * 7 )";
 
         const result = tokenizeAndParse(input);
 
         expect(result).to.deep.equal(
-            PlusExpression.of(
-                TimesExpression.of(
-                    TerminalExpression.of(4),
-                    TerminalExpression.of(5)
-                ),
-                TimesExpression.of(
-                    TimesExpression.of(
-                        TerminalExpression.of(2),
-                        TerminalExpression.of(3)
-                    ),
-                    TerminalExpression.of(7)
-                )
-            )
+            plus(times(num(4), num(5)), times(times(num(2), num(3)), num(7)))
+        );
+    });
+
+    it("works for 4 - 5", () => {
+        const input = "4 - 5";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(minus(num(4), num(5)));
+    });
+
+    it("works for 4 - 5 + 4 - ( 3 * 2 )", () => {
+        const input = "4 - 5 + 4 - ( 3 * 2 )";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(
+            minus(plus(minus(num(4), num(5)), num(4)), times(num(3), num(2)))
         );
     });
 });

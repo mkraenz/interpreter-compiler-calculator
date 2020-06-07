@@ -10,5 +10,5 @@ export class BracketOpenToken extends BaseToken {
         return new BracketOpenToken(pos);
     }
 
-    protected readonly type = TokenType.BracketOpen; // for testing
+    protected readonly type = TokenType.BracketOpen;
 }

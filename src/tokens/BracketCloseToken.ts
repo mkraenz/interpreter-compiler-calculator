@@ -10,5 +10,5 @@ export class BracketCloseToken extends BaseToken {
         return new BracketCloseToken(pos);
     }
 
-    protected readonly type = TokenType.BracketClose; // for testing
+    protected readonly type = TokenType.BracketClose;
 }

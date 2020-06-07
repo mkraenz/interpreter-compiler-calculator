@@ -1,6 +1,7 @@
 export enum TokenType {
-    Plus = "+",
     Number = "Number",
+    Plus = "+",
+    Minus = "-",
     Times = "*",
     BracketOpen = "(",
     BracketClose = ")",

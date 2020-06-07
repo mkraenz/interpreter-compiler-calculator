@@ -10,5 +10,5 @@ export class PlusToken extends BaseToken {
         return new PlusToken(pos);
     }
 
-    protected readonly type = TokenType.Plus; // for testing
+    protected readonly type = TokenType.Plus;
 }

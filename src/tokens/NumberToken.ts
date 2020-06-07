@@ -10,7 +10,7 @@ export class NumberToken extends BaseToken {
         return new NumberToken(pos, value);
     }
 
-    protected readonly type = TokenType.Number; // for testing
+    protected readonly type = TokenType.Number;
 
     constructor(public readonly pos: number, public readonly value: number) {
         super(pos);

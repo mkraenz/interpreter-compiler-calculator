@@ -1,5 +1,6 @@
 import { BracketCloseToken } from "./BracketCloseToken";
 import { BracketOpenToken } from "./BracketOpenToken";
+import { MinusToken } from "./MinusToken";
 import { NumberToken } from "./NumberToken";
 import { PlusToken } from "./PlusToken";
 import { TimesToken } from "./TimesToken";
@@ -16,6 +17,8 @@ export class Tokenizer {
         switch (x) {
             case "+":
                 return PlusToken.of(pos);
+            case "-":
+                return MinusToken.of(pos);
             case "*":
                 return TimesToken.of(pos);
             case "(":

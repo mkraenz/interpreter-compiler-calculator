@@ -25,4 +25,12 @@ describe("interpret()", () => {
 
         expect(result).to.equal(75.7);
     });
+
+    it("returns -3 for 4 - 5 + 4 - ( 3 * 2 )", () => {
+        const input = "4 - 5 + 4 - ( 3 * 2 )";
+
+        const result = interpret(input);
+
+        expect(result).to.equal(-3);
+    });
 });
