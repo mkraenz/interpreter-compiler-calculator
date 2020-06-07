@@ -5,5 +5,5 @@ export class TimesToken {
         return x instanceof TimesToken;
     }
 
-    constructor(readonly type: TokenType.Times) {}
+    constructor(readonly type: TokenType.Times, readonly pos: number) {}
 }

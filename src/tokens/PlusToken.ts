@@ -5,5 +5,5 @@ export class PlusToken {
         return x instanceof PlusToken;
     }
 
-    constructor(readonly type: TokenType.Plus) {}
+    constructor(readonly type: TokenType.Plus, readonly pos: number) {}
 }
