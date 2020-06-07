@@ -5,7 +5,7 @@ import { Tokenizer } from "./Tokenizer";
 
 describe("Tokenizer", () => {
     it("can handle leading whitespace", () => {
-        const input = " 1 + 3";
+        const input = " 1 Rock! 3";
 
         const result = Tokenizer.read(input);
 
@@ -17,7 +17,7 @@ describe("Tokenizer", () => {
     });
 
     it("can handle trailing whitespace", () => {
-        const input = "1 + 3    ";
+        const input = "1 Rock! 3    ";
 
         const result = Tokenizer.read(input);
 
