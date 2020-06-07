@@ -33,4 +33,12 @@ describe("interpret()", () => {
 
         expect(result).to.equal(-3);
     });
+
+    it("returns 4.8 for 4 / 5 + ( 4 / ( 3 - 2 ) )", () => {
+        const input = "4 / 5 + ( 4 / ( 3 - 2 ) )";
+
+        const result = interpret(input);
+
+        expect(result).to.equal(4.8);
+    });
 });

@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { flow } from "fp-ts/lib/function";
+import { DividedExpression } from "./expressions/DividedExpression";
 import { MinusExpression } from "./expressions/MinusExpression";
 import { PlusExpression } from "./expressions/PlusExpression";
 import { TerminalExpression } from "./expressions/TerminalExpression";
@@ -12,6 +13,7 @@ const tokenizeAndParse = flow(Tokenizer.read, parse);
 const minus = MinusExpression.of;
 const plus = PlusExpression.of;
 const times = TimesExpression.of;
+const divided = DividedExpression.of;
 const num = TerminalExpression.of;
 
 describe("tokenize and parse", () => {
@@ -100,6 +102,27 @@ describe("tokenize and parse", () => {
 
         expect(result).to.deep.equal(
             minus(plus(minus(num(4), num(5)), num(4)), times(num(3), num(2)))
+        );
+    });
+
+    it("works for 6 / 3", () => {
+        const input = "6 / 3";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(divided(num(6), num(3)));
+    });
+
+    it("works for 4 - 5 + 4 / ( 18 / 2 )", () => {
+        const input = "4 - 5 + 4 / ( 18 / 2 )";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(
+            divided(
+                plus(minus(num(4), num(5)), num(4)),
+                divided(num(18), num(2))
+            )
         );
     });
 });

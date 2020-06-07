@@ -3,6 +3,7 @@ export enum TokenType {
     Plus = "+",
     Minus = "-",
     Times = "*",
+    Divided = "/",
     BracketOpen = "(",
     BracketClose = ")",
 }

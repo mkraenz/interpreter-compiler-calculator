@@ -1,9 +1,11 @@
 import { BracketCloseToken } from "./BracketCloseToken";
 import { BracketOpenToken } from "./BracketOpenToken";
+import { DividedToken } from "./DividedToken";
 import { MinusToken } from "./MinusToken";
 import { NumberToken } from "./NumberToken";
 import { PlusToken } from "./PlusToken";
 import { TimesToken } from "./TimesToken";
+import { TokenType } from "./TokenType";
 
 // aka Lexer, Lexical Analyzer
 export class Tokenizer {
@@ -15,15 +17,17 @@ export class Tokenizer {
 
     private static of(x: string, pos: number) {
         switch (x) {
-            case "+":
+            case TokenType.Plus:
                 return PlusToken.of(pos);
-            case "-":
+            case TokenType.Minus:
                 return MinusToken.of(pos);
-            case "*":
+            case TokenType.Times:
                 return TimesToken.of(pos);
-            case "(":
+            case TokenType.Divided:
+                return DividedToken.of(pos);
+            case TokenType.BracketOpen:
                 return BracketOpenToken.of(pos);
-            case ")":
+            case TokenType.BracketClose:
                 return BracketCloseToken.of(pos);
             default:
                 return NumberToken.of(pos, Number(x));

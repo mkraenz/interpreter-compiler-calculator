@@ -1,4 +1,5 @@
 import { ParserError } from "./errors/ParserError";
+import { DividedExpression } from "./expressions/DividedExpression";
 import { EmptyExpression } from "./expressions/EmptyExpression";
 import { IExpression } from "./expressions/IExpression";
 import { MinusExpression } from "./expressions/MinusExpression";
@@ -7,18 +8,24 @@ import { TerminalExpression } from "./expressions/TerminalExpression";
 import { TimesExpression } from "./expressions/TimesExpression";
 import { BracketCloseToken } from "./tokens/BracketCloseToken";
 import { BracketOpenToken } from "./tokens/BracketOpenToken";
+import { DividedToken } from "./tokens/DividedToken";
 import { MinusToken } from "./tokens/MinusToken";
 import { NumberToken } from "./tokens/NumberToken";
 import { PlusToken } from "./tokens/PlusToken";
 import { TimesToken } from "./tokens/TimesToken";
 import { Token } from "./tokens/Token";
 
-type Operation = PlusExpression | TimesExpression | MinusExpression;
-type OperatorToken = PlusToken | TimesToken | MinusToken;
+type Operation =
+    | PlusExpression
+    | TimesExpression
+    | MinusExpression
+    | DividedExpression;
+type OperatorToken = PlusToken | TimesToken | MinusToken | DividedToken;
 const isOperator = (x: Token): x is OperatorToken =>
     PlusToken.instanceof(x) ||
     TimesToken.instanceof(x) ||
-    MinusToken.instanceof(x);
+    MinusToken.instanceof(x) ||
+    DividedToken.instanceof(x);
 
 interface IAstAccumulator {
     ast: IExpression;
@@ -87,6 +94,9 @@ const parseOperator = (tokens: Token[], left: IExpression): IAstAccumulator => {
     }
     if (MinusToken.instanceof(operator)) {
         return astAccumulatorOf(MinusExpression.of);
+    }
+    if (DividedToken.instanceof(operator)) {
+        return astAccumulatorOf(DividedExpression.of);
     }
     throw new ParserError(operator.pos, "Unknown operator");
 };
