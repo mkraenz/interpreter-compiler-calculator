@@ -5,6 +5,8 @@ export class TimesExpression implements IExpression {
         return new TimesExpression(left, right);
     }
 
+    public readonly type = "*"; // for making tests work
+
     constructor(private left: IExpression, private right: IExpression) {}
 
     public interpret() {

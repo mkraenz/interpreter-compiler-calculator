@@ -1,9 +1,14 @@
+import { BaseToken } from "./BaseToken";
 import { TokenType } from "./TokenType";
 
-export class TimesToken {
+export class TimesToken extends BaseToken {
     public static instanceof(x: unknown): x is TimesToken {
         return x instanceof TimesToken;
     }
 
-    constructor(readonly type: TokenType.Times, readonly pos: number) {}
+    public static of(pos: number) {
+        return new TimesToken(pos);
+    }
+
+    protected readonly type = TokenType.Times; // for testing
 }

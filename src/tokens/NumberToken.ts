@@ -1,16 +1,20 @@
+import { BaseToken } from "./BaseToken";
 import { TokenType } from "./TokenType";
 
-export class NumberToken {
+export class NumberToken extends BaseToken {
     public static instanceof(x: unknown): x is NumberToken {
         return x instanceof NumberToken;
     }
 
-    constructor(
-        readonly type: TokenType.Number,
-        readonly pos: number,
-        readonly value: number
-    ) {
-        if (type === TokenType.Number && isNaN(value!)) {
+    public static of(pos: number, value: number) {
+        return new NumberToken(pos, value);
+    }
+
+    protected readonly type = TokenType.Number; // for testing
+
+    constructor(public readonly pos: number, public readonly value: number) {
+        super(pos);
+        if (isNaN(value!)) {
             throw new Error(`TokenError: Unknown literal ${value}.`);
         }
     }

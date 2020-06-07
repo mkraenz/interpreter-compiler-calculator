@@ -1,5 +1,6 @@
-import * as assert from "assert";
+import { ParserError } from "./errors/ParserError";
 import { EmptyExpression } from "./expressions/EmptyExpression";
+import { IExpression } from "./expressions/IExpression";
 import { PlusExpression } from "./expressions/PlusExpression";
 import { TerminalExpression } from "./expressions/TerminalExpression";
 import { TimesExpression } from "./expressions/TimesExpression";
@@ -14,57 +15,108 @@ type OperatorToken = PlusToken | TimesToken;
 const isOperator = (x: Token): x is OperatorToken =>
     PlusToken.instanceof(x) || TimesToken.instanceof(x);
 
-export function parse(tokens: Token[]) {
-    const operatorStack: OperatorToken[] = [];
-    const bracketOpenStack: BracketOpenToken[] = [];
-    const AST = tokens.reduce((ast, token) => {
-        if (token.pos === 0) {
-            assert(NumberToken.instanceof(token));
-            return TerminalExpression.of(token.value);
-        }
-
-        if (NumberToken.instanceof(token)) {
-            const val = token.value;
-            const operator = operatorStack.pop();
-            if (!operator) {
-                throw new Error(
-                    `ParserError at position ${token.pos}. Expected an operator but found a number`
-                );
-            }
-            if (PlusToken.instanceof(operator)) {
-                return PlusExpression.of(ast, TerminalExpression.of(val));
-            } else if (TimesToken.instanceof(operator)) {
-                return TimesExpression.of(ast, TerminalExpression.of(val));
-            }
-        }
-
-        if (isOperator(token)) {
-            operatorStack.push(token);
-            return ast;
-        }
-        if (BracketOpenToken.instanceof(token)) {
-            bracketOpenStack.push(token);
-            const closingBracketIndex = findMatchingClosingBracketIndex(
-                tokens.slice(token.pos + 1)
-            );
-            if (closingBracketIndex === -1) {
-                throw new Error(
-                    `ParserError at position ${token.pos}: Could not find matching closing bracket.`
-                );
-            }
-            const subTree = parse(
-                tokens.slice(token.pos + 1, closingBracketIndex)
-            );
-        }
-        throw new Error(
-            `ParseError at position ${token.pos}: Unknown character`
-        );
-    }, EmptyExpression.of());
-    if (AST!) {
-        return AST!;
-    }
-    throw new Error("ParserError. Missing input string");
+interface IAstAccumulator {
+    ast: IExpression;
+    nextIndexForParsing: number;
 }
+
+export function parse(tokens: Token[]) {
+    return _parse(tokens).ast;
+}
+
+function _parse(tokens: Token[]) {
+    const AST = tokens.reduce(
+        (acc, token, i) => {
+            if (token.pos < acc.nextIndexForParsing) {
+                return acc;
+            }
+            const unparsedTokens = () => tokens.slice(i);
+            if (NumberToken.instanceof(token)) {
+                return {
+                    ast: TerminalExpression.of(token.value),
+                    nextIndexForParsing: i + 1,
+                };
+            }
+            if (isOperator(token)) {
+                return parseOperator(unparsedTokens(), acc.ast);
+            }
+            if (BracketOpenToken.instanceof(token)) {
+                return parseBracketInternals(unparsedTokens());
+            }
+            if (BracketCloseToken.instanceof(token)) {
+                return acc;
+            }
+
+            throw new Error(
+                `ParseError at position ${
+                    (token as any).pos
+                }: Unknown character ${JSON.stringify(token)}`
+            );
+        },
+        { ast: EmptyExpression.of(), nextIndexForParsing: 0 } as IAstAccumulator
+    );
+    return AST;
+}
+
+const parseOperator = (tokens: Token[], left: IExpression): IAstAccumulator => {
+    const operator = tokens[0];
+
+    if (EmptyExpression.instanceof(left)) {
+        throw new ParserError(
+            operator.pos,
+            "Left-hand side of operator cannot be empty"
+        );
+    }
+    const right = lookAhead(tokens.slice(1));
+    if (PlusToken.instanceof(operator)) {
+        return {
+            ast: PlusExpression.of(left, right.ast),
+            nextIndexForParsing: right.nextIndexForParsing,
+        };
+    }
+    if (TimesToken.instanceof(operator)) {
+        return {
+            ast: TimesExpression.of(left, right.ast),
+            nextIndexForParsing: right.nextIndexForParsing,
+        };
+    }
+    throw new ParserError(operator.pos, "Unknown operator");
+};
+
+const lookAhead = (tokens: Token[]): IAstAccumulator => {
+    const token = tokens[0];
+    if (NumberToken.instanceof(token)) {
+        return {
+            ast: TerminalExpression.of(token.value),
+            nextIndexForParsing: token.pos + 1,
+        };
+    }
+    if (BracketOpenToken.instanceof(token)) {
+        return parseBracketInternals(tokens);
+    }
+    throw new ParserError(
+        token.pos,
+        "Lookahead failed due to unknown character."
+    );
+};
+
+const parseBracketInternals = (tokens: Token[]): IAstAccumulator => {
+    const token = tokens[0];
+    const closingBracketIndex = findMatchingClosingBracketIndex(
+        tokens.slice(1)
+    );
+    if (closingBracketIndex === -1) {
+        throw new ParserError(
+            token.pos,
+            "Could not find matching closing bracket"
+        );
+    }
+    const subAcc = _parse(tokens.slice(1, closingBracketIndex + 1));
+    return {
+        ast: subAcc.ast,
+        nextIndexForParsing: subAcc.nextIndexForParsing,
+    };
+};
 
 /** In the higher level function, the token right before tokens[0] should be an opening bracket. */
 const findMatchingClosingBracketIndex = (tokens: Token[]): number => {

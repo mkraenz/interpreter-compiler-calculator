@@ -5,6 +5,8 @@ export class PlusExpression implements IExpression {
         return new PlusExpression(left, right);
     }
 
+    public readonly type = "+"; // for making tests work
+
     constructor(private left: IExpression, private right: IExpression) {}
 
     public interpret() {

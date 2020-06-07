@@ -6,7 +6,7 @@ import { TimesExpression } from "./expressions/TimesExpression";
 import { parse } from "./parse";
 import { Tokenizer } from "./tokens/Tokenizer";
 
-const tokenizeAndParse = flow(Tokenizer.tokenize, parse);
+const tokenizeAndParse = flow(Tokenizer.read, parse);
 describe("tokenize and parse", () => {
     it("works for 5 + 3", () => {
         const input = "5 + 3";
@@ -43,8 +43,8 @@ describe("tokenize and parse", () => {
         const result = tokenizeAndParse(input);
 
         expect(result).to.deep.equal(
-            TimesExpression.of(
-                PlusExpression.of(
+            PlusExpression.of(
+                TimesExpression.of(
                     TerminalExpression.of(4),
                     TerminalExpression.of(5)
                 ),
@@ -60,14 +60,84 @@ describe("tokenize and parse", () => {
 
         expect(result).to.deep.equal(
             TimesExpression.of(
-                TimesExpression.of(
-                    PlusExpression.of(
+                PlusExpression.of(
+                    TimesExpression.of(
                         TerminalExpression.of(4),
                         TerminalExpression.of(5)
                     ),
                     TerminalExpression.of(3)
                 ),
                 TerminalExpression.of(8)
+            )
+        );
+    });
+
+    it("works for ( 4 * 5 )", () => {
+        const input = "( 4 * 5 )";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(
+            TimesExpression.of(
+                TerminalExpression.of(4),
+                TerminalExpression.of(5)
+            )
+        );
+    });
+
+    it("works for ( 4 * 5 ) + 3", () => {
+        const input = "( 4 * 5 ) + 3";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(
+            PlusExpression.of(
+                TimesExpression.of(
+                    TerminalExpression.of(4),
+                    TerminalExpression.of(5)
+                ),
+                TerminalExpression.of(3)
+            )
+        );
+    });
+
+    it("works for ( 4 * 5 ) + ( 2 * 3 )", () => {
+        const input = "( 4 * 5 ) + ( 2 * 3 )";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(
+            PlusExpression.of(
+                TimesExpression.of(
+                    TerminalExpression.of(4),
+                    TerminalExpression.of(5)
+                ),
+                TimesExpression.of(
+                    TerminalExpression.of(2),
+                    TerminalExpression.of(3)
+                )
+            )
+        );
+    });
+
+    it("works for ( 4 * 5 ) + ( ( 2 * 3 ) * 7 ) ", () => {
+        const input = "( 4 * 5 ) + ( ( 2 * 3 ) * 7 )";
+
+        const result = tokenizeAndParse(input);
+
+        expect(result).to.deep.equal(
+            PlusExpression.of(
+                TimesExpression.of(
+                    TerminalExpression.of(4),
+                    TerminalExpression.of(5)
+                ),
+                TimesExpression.of(
+                    TimesExpression.of(
+                        TerminalExpression.of(2),
+                        TerminalExpression.of(3)
+                    ),
+                    TerminalExpression.of(7)
+                )
             )
         );
     });

@@ -32,7 +32,11 @@
                 "--colors",
                 "${workspaceFolder}/src/**/*.test.ts"
             ],
-            "internalConsoleOptions": "openOnSessionStart"
+            "internalConsoleOptions": "openOnSessionStart",
+            "skipFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "<node_internals>/**/*.js"
+            ]
         },
         {
             "type": "chrome",
