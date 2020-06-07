@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES2017",
-        "module": "CommonJs",
+        "module": "CommonJS",
         "strict": true,
         "noImplicitReturns": true,
         "noUnusedLocals": false,

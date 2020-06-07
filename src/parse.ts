@@ -1,42 +1,46 @@
+import * as assert from "assert";
 import { IExpression } from "./expressions/IExpression";
 import { PlusExpression } from "./expressions/PlusExpression";
 import { TerminalExpression } from "./expressions/TerminalExpression";
 import { TimesExpression } from "./expressions/TimesExpression";
+import { NumberToken } from "./tokens/NumberToken";
+import { PlusToken } from "./tokens/PlusToken";
+import { TimesToken } from "./tokens/TimesToken";
+import { Token } from "./tokens/Token";
 
-const operators = ["+", "*"];
+type OperatorToken = PlusToken | TimesToken;
+const isOperator = (x: Token): x is OperatorToken =>
+    PlusToken.instanceof(x) || TimesToken.instanceof(x);
 
-export function parse(s: string) {
-    const leafs = s.split(" ");
+const isNumberToken = (x: Token): x is NumberToken => x instanceof NumberToken;
+
+export function parse(tokens: Token[]) {
     let ast: IExpression; // left expression
-    const operatorStack: string[] = []; // operator
-    leafs.forEach((leaf, i) => {
+    const operatorStack: OperatorToken[] = []; // operator
+    tokens.forEach((token, i) => {
         if (i === 0) {
-            const initialLeaf = Number(leaf);
-            if (Number.isNaN(initialLeaf)) {
-                throw new Error(`ParserError at position ${i}`);
-            }
-            ast = TerminalExpression.of(initialLeaf);
+            assert(isNumberToken(token));
+            ast = TerminalExpression.of(token.value);
             return;
         }
 
-        if (operators.includes(leaf)) {
-            operatorStack.push(leaf);
-        }
-
-        if (isNumber(leaf)) {
-            const val = Number(leaf);
-            if (operatorStack.length === 0) {
+        if (isNumberToken(token)) {
+            const val = token.value;
+            const operator = operatorStack.pop();
+            if (!operator) {
                 throw new Error(
                     `ParserError at position ${i}. Expected an operator but found a number`
                 );
             }
-            const operator = operatorStack.pop();
-            if (operator === "+") {
+            if (PlusToken.instanceof(operator)) {
                 ast = PlusExpression.of(ast, TerminalExpression.of(val));
-            }
-            if (operator === "*") {
+            } else if (TimesToken.instanceof(operator)) {
                 ast = TimesExpression.of(ast, TerminalExpression.of(val));
             }
+        }
+
+        if (isOperator(token)) {
+            operatorStack.push(token);
         }
     });
     if (ast!) {
@@ -44,5 +48,3 @@ export function parse(s: string) {
     }
     throw new Error("ParserError. Missing input string");
 }
-
-const isNumber = (x: unknown): x is number => !Number.isNaN(Number(x));
