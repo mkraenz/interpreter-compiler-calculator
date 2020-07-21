@@ -45,7 +45,7 @@
     },
     "dependencies": {
         "fp-ts": "^2.6.2",
-        "lodash": "^4.17.15"
+        "lodash": "^4.17.19"
     },
     "husky": {
         "hooks": {
